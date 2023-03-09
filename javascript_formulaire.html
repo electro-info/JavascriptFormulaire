@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="utf-8" />
+		<title>Formulaire JavaScript</title>
+		<style>
+			label {
+				display: inline-block;
+				width: 60px;
+				margin: 4px 2px;
+				font-size: 14px;
+			}
+			input {
+				display: inline-block;
+				width: 50px;		
+				margin: 4px 2px;
+				font-size: 14px;
+			}
+			button {
+				background-color: #4CAF50;
+				border: none;
+				color: white;
+				padding: 10px 25px;
+				text-align: center;
+				text-decoration: none;
+				display: inline-block;
+				font-size: 14px;
+				margin: 4px 2px;
+				cursor: pointer;
+				border-radius: 9px;				
+			}
+		</style>
+	</head>
+	<body>
+		<!-- Adresse IP -->
+		<label for="ip3">IP : </label>
+			<input type="number" id="ip3" min="0" max="255" onchange="afficheInfo()" /> .
+			<input type="number" id="ip2" min="0" max="255" onchange="afficheInfo()" /> .
+			<input type="number" id="ip1" min="0" max="255" onchange="afficheInfo()" /> .
+			<input type="number" id="ip0" min="0" max="255" onchange="afficheInfo()" /><br>
+		<!-- FIN Adresse IP -->
+		<!-- Masque -->
+		<label for="mas3">Masque : </label>
+			<input type="number" id="mas3" min="0" max="255" onchange="afficheInfo()" /> .
+			<input type="number" id="mas2" min="0" max="255" onchange="afficheInfo()" /> .
+			<input type="number" id="mas1" min="0" max="255" onchange="afficheInfo()" /> .
+			<input type="number" id="mas0" min="0" max="255" onchange="afficheInfo()" /><br>
+		<!-- FIN Masque -->
+		<!-- Bouton de réinitialisation -->
+		<br><button type="button" onclick="init();">Réinitialiser</button>
+		<!-- Zone de résultat -->
+		<br><br><div id="resultat"></div>
+		<script>
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		/**
+			TO DO
+				1.  Prendre connaissance du code et le tester dans un navigateur, comprendre son fonctionnement général
+				2.  Modifier le code de manière à avoir comme adresse / masque par défaut : 192.168.1.1 / 255.255.255.0
+				3.  Créer 3 fichiers de manière à séparer dans 3 fichiers différents :
+						- le CSS, 
+						- les fonctions JS (uniquement les fonctions, on gardera le code exécuté au chargement 
+						  de la page dans le HTML)
+						- le HTML
+				4.  Compléter les fonctions isValidIP et isValidMask
+				5.  Compléter les commentaires Doxygen de toutes les fonctions (un exemple est donné pour la fonction getClasseIP)
+						https://fr.wikipedia.org/wiki/Doxygen
+				6.  Utiliser la fonction getNetworkAddress dans la fonction afficheInfo
+				7.  Sur le modèle de la fonction getNetworkAddress, créer et utiliser la 
+				    fonction getBroadcastAddress dans la fonction afficheInfo	
+				8.  Afficher le type d'adresse, l'adresse réseau et l'adresse de Broadcast uniquement pour les
+				    IP de classe A, B ou C, pour la classe D préciser simplement qu'il s'agit d'une adresse de MULTICAST
+				    qui sera un lien vers la page https://fr.wikipedia.org/wiki/Multicast et pour les adresses de classe E,
+				    préciser que leur usage est réservé par l'IANA à un usage non déterminé avec lien vers :
+						https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml
+				9.  Faire afficher le masque en notation CIDR à sa droite (créer une fonction "getCIDR")
+				10. Améliorer l'IHM en faisant en sorte que, en cas d'erreur (masque ou IP), le message
+				    d'erreur "Adresse IP ou masque invalide" soit affiché en rouge
+				11. Améliorer l'IHM en faisant en sorte que, en cas d'erreur (masque ou IP), la case
+				    où se trouve l'erreur soit encadrée en rouge
+		*/
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		// Définition des fonctions
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		/**
+		* @todo compléter le commentaire Doxygen
+		*/
+		function init() {
+			document.getElementById("ip3").value = "172";
+			document.getElementById("ip2").value = "16";
+			document.getElementById("ip1").value = "8";
+			document.getElementById("ip0").value = "4";
+			
+			document.getElementById("mas3").value = "255";
+			document.getElementById("mas2").value = "255";
+			document.getElementById("mas1").value = "0";
+			document.getElementById("mas0").value = "0";
+			
+			afficheInfo();
+		}
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		/**
+		* Retourne la classe (A, B, C, D ou E) d'une adresse IP.
+		*  @param MsbIp : octet de points de fort de l'adresse IP
+		*  @return A, B, C, D ou E selon l'adresse IP (string)
+		*  @author SD
+		*/
+		function getClasseIP(MsbIp) {		
+			if(MsbIp < 128)
+				return 'A';
+			else if(MsbIp < 192)
+				return 'B';
+			else if(MsbIp < 224)
+				return 'C';
+			else if(MsbIp < 240)
+				return 'D';
+			else
+				return 'E';
+		}
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		/**
+		* @todo compléter le commentaire Doxygen
+		*/
+		function getTypeIP(ip3, ip2) {
+			// https://developer.mozilla.org/fr/docs/Web/JavaScript/Guide/Expressions_and_Operators#op%C3%A9rateurs_logiques
+			if(ip3 == 10 || ip3 == 192)
+				return "privée";
+			else if(ip3 == 172 && (ip2 >= 16 && ip2 <= 31))
+				return "privée";
+			else	
+				return "publique";
+		}
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		/**
+		* @todo compléter le commentaire Doxygen
+		*/		
+		function ip32bitsToString(ip32) {
+			// https://developer.mozilla.org/fr/docs/Web/JavaScript/Guide/Expressions_and_Operators#op%C3%A9rateurs_binaires
+			return  ((ip32 & 0xFF000000) >>> 24) + "." + ((ip32 & 0x00FF0000) >>> 16) + "." + ((ip32 & 0x0000FF00) >>> 8) + "." + (ip32 & 0x000000FF);		
+		}
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		/**
+		* @todo compléter le commentaire Doxygen
+		*/
+		function getNetworkAddress(ip3, ip2, ip1, ip0, mas3, mas2, mas1, mas0) {
+			// https://developer.mozilla.org/fr/docs/Web/JavaScript/Guide/Expressions_and_Operators#op%C3%A9rateurs_binaires
+			ip = (ip3 << 24) + (ip2 << 16) + (ip1 << 8) + ip0;
+			console.log(ip32bitsToString(ip));
+			mask = (mas3 << 24) + (mas2 << 16) + (mas1 << 8) + mas0;
+			console.log(ip32bitsToString(mask));
+			networkAddress = ip & mask;
+			
+			return  ip32bitsToString(networkAddress);
+		}
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		/**
+		* @todo compléter le commentaire Doxygen
+		* @todo Fonction non terminée, poour le moment elle renvoie toujours VRAI
+		*/
+		function isValidIP(ip3, ip2, ip1, ip0) {
+			// ToDo :   vérifier que l'IP est valide : nombres entre 0 et 255, ne commence pas par 0,
+			//			ne commence pas par 127
+			return true;
+		}
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		/**
+		* @todo compléter le commentaire Doxygen
+		* @todo Fonction non terminée, poour le moment elle renvoie toujours VRAI
+		*/
+		function isValidMask(mas3, mas2, mas1, mas0) {
+			// ToDo : vérifier que le masque est valide : une suite de 1 suivi d'une suite de 0
+			// Indice : les seuls nombres possibles dans un masque sont : 
+			//						255, 254, 252, 248, 240 224, 192, 128, 0
+			return true;
+		}
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		/**
+		* @todo compléter le commentaire Doxygen + compléter la fonction pour avoir un affichage complet des informations
+		*/		
+		function afficheInfo() {
+			ip3 = document.getElementById("ip3").value;
+			ip2 = document.getElementById("ip2").value;
+			
+			// ToDo : passer les paramètres nécessaires aux fonctions isValidIP et isValidMask
+			if(isValidIP() && isValidMask()) {
+				res = document.getElementById("resultat");
+				res.innerHTML = "C'est une adresse IP " + getTypeIP(ip3, ip2) + " de classe " + getClasseIP(ip3);
+				res.innerHTML = res.innerHTML + "<br><br>";
+				res.innerHTML = res.innerHTML + "L'adresse réseau correspondante est : ";
+				res.innerHTML = res.innerHTML + "<br>L'adresse de Broadcast correspondante est : ";
+			}
+			else {
+				res = document.getElementById("resultat");
+				res.innerHTML = "Adresse IP ou masque invalide";
+			}
+		}
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		// Fin définition des fonctions
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		// Seule ligne de code exécutée au chargement de la page :
+		init();
+		</script>
+	</body>
+</html>
